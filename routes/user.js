@@ -39,7 +39,7 @@ router.post(
       });
       if (user) {
         return res.status(400).json({
-          msg: "User Already Exists"
+          msg: "User Already Exists, please try other password"
         });
       }
 
