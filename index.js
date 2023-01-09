@@ -2,7 +2,7 @@ const express = require("express");
 var cors = require('cors')
 const bodyParser = require("body-parser");
 const user = require("./routes/user");
-const categoy = require("./routes/category")
+const category = require("./routes/category")
 const InitiateMongoServer = require("./config/db");
 
 // Initiate Mongo Server
@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
  * Method - *
  */
 app.use("/user", user);
-app.use("/category",categoy)
+app.use("/category",category)
 
 app.listen(PORT, (req, res) => {
   console.log(`Server Started at PORT ${PORT}`);

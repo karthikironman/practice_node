@@ -27,6 +27,22 @@ const addCategory = async (req, res = null) => {
     }
 }
 
+const addChoice = async (req,res = null) => {
+    try{
+        let {category_id,name,icon_img,influencer_img} = req.body;
+        let existingCat = await findCategory({_id:category_id});
+        if(existingCat.length < 1){
+              if(res) res.status(400).send('category id invalid / doesnt exists')
+        }else{
+            let pushdata = await category.update({_id:category_id},{$push:{choice:{name,icon_img,influencer_img}}})
+            res.json(pushdata)
+        }
+
+    }catch(err){
+
+    }
+}
+
 const findCategory = async (data, res = null) => {
     try {
         let result = await category.find(data);
@@ -44,33 +60,15 @@ const findCategory = async (data, res = null) => {
     }
 }
 
-const deleteCategory = async (data, res = null) => {
-    try {
-        let result = await category.deleteOne(data);
-        if (res) {
-            res.send(result)
-        } else {
-            return result;
-        }
-    } catch (err) {
-        if (res) {
-            res.status(400).json({ err })
-        } else {
-            throw err
-        }
-    }
-}
 
 
-const check = (res) => {
-    if (res.finished) {
-        console.log('sent')
-    } else {
-        console.log('not sent')
-    }
-}
+
+
 router.post(
     "/add", addCategory
+)
+router.post(
+    "/choice/add",addChoice
 )
 
 module.exports = router;

@@ -1,169 +1,38 @@
 const express = require("express");
-const { check, validationResult } = require("express-validator/check");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const router = express.Router();
-const auth = require("../middleware/auth");
-
 const User = require("../model/User");
 
-/**
- * @method - POST
- * @param - /signup
- * @description - User SignUp
- */
-
-router.post(
-  "/signup",
-  [
-    check("username", "Please Enter a Valid Username")
-      .not()
-      .isEmpty(),
-    check("email", "Please enter a valid email").isEmail(),
-    check("password", "Please enter a valid password").isLength({
-      min: 6
-    })
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array()
-      });
-    }
-
-    const { username, email, password } = req.body;
+const getUserByMagicId = async (req, res) => {
     try {
-      let user = await User.findOne({
-        email
-      });
-      if (user) {
-        return res.status(400).json({
-          msg: "User Already Exists, please try other password"
-        });
-      }
-
-      user = new User({
-        username,
-        email,
-        password
-      });
-
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-
-      await user.save();
-
-      const payload = {
-        user: {
-          id: user.id
+        let { magic_id = null } = req.query;
+        if (magic_id == null) {
+            req.status(400).send('magic_id missing')
+        } else {
+            let user = await User.findOne({
+                magic_id
+            })
+            if (user) {
+                return res.status(200).json(user)
+            } else {
+                return res.status(400).send("user not found")
+            }
         }
-      };
-
-      jwt.sign(
-        payload,
-        "randomString",
-        {
-          expiresIn: 10000
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.status(200).json({
-            token
-          });
-        }
-      );
     } catch (err) {
-      console.log(err.message);
-      res.status(500).send("Error in Saving");
+        console.log(err)
+        res.status(500).send("some error")
     }
-  }
-);
+}
+// code to insert items into database
 
-router.post(
-  "/login",
-  [
-    check("email", "Please enter a valid email").isEmail(),
-    check("password", "Please enter a valid password").isLength({
-      min: 6
-    })
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array()
-      });
-    }
-
-    const { email, password } = req.body;
-    try {
-      let user = await User.findOne({
-        email
-      });
-      if (!user)
-        return res.status(400).json({
-          message: "User Not Exist"
-        });
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch)
-        return res.status(400).json({
-          message: "Incorrect Password !"
-        });
-
-      const payload = {
-        user: {
-          id: user.id
-        }
-      };
-
-      jwt.sign(
-        payload,
-        "randomString",
-        {
-          expiresIn: 36000
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.status(200).json({
-            token
-          });
-        }
-      );
-    } catch (e) {
-      console.error(e);
-      res.status(500).json({
-        message: "Server Error"
-      });
-    }
-  }
-);
-
-/**
- * @method - POST
- * @description - Get LoggedIn User
- * @param - /user/me
- */
-
-router.get("/me", auth, async (req, res) => {
-  try {
-    // request.user is getting fetched from Middleware after token authentication
-    const user = await User.findById(req.user.id);
-    console.log(user);
-    let user1 = JSON.parse(JSON.stringify(user))
-    user1.name = "-";
-    user1.age = "-";
-    user1.gender = "-";
-    user1.country = "-";
-    user1.phone_number = "-";
-    delete user1.password;
-    delete user1.__v;
-    res.json(user1);
-  } catch (e) {
-    res.send({ message: "Error in Fetching user" });
-  }
-});
-
+// let insertUser = User({
+//     name:'nandini',
+// flavour:'naka',
+// age:25,
+// pool_id:"6384e9571ed1a44ffa82ad87"
+// })
+// console.log('beffore save')
+// insertUser.save().then(x=>console.log('user inseerted -',x));
+// console.log("after save")
+router.get("/", getUserByMagicId)
 module.exports = router;

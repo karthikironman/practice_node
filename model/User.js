@@ -13,6 +13,10 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  magic_id:{
+    type:String,
+    required:true
+  },
   flavour:{
     type: String,
     enum:['ha','naka'],
